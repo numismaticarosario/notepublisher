@@ -3,3 +3,6 @@ gunicorn
 python-dotenv
 openai
 requests
+streamlit
+numpy
+pandas
