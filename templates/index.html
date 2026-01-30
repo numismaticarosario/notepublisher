@@ -224,7 +224,7 @@ if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
         "", 1, calcPrecio, "", 1,
         descVal, "", "No agregar cuotas", "", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
-        7, "días", "", paisVal, solo_numero_float(valorVal), "", fechaVal, "",  // AB
+        7, "días", "", paisVal, valorVal, "", fechaVal, "",  // AB
       ];
 
       const ws = XLSX.utils.aoa_to_sheet([row]);
@@ -311,5 +311,6 @@ if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
     reader.readAsDataURL(uploadedFile);
   });
 </script>
+
 
 
