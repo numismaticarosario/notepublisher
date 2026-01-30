@@ -199,6 +199,7 @@ if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
     });
 
     excelBtn.addEventListener("click", () => {
+      console.log("CLICK EXCEL");
       const inputs = document.querySelectorAll(".data-panel input");
       const getVal = (name) => {
         const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
@@ -235,3 +236,4 @@ if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
   </script>
 </body>
 </html>
+
