@@ -221,10 +221,10 @@ if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
       const row = [
         "", tituloVal, "", estado, "", 
         "https://http2.mlstatic.com/D_NQ_NP_697806-MLA88371869892_072025-F.jpg",
-        "", 1, calcPrecio, "", 1,
-        descVal, "", "No agregar cuotas", "", "Mercado Envíos",
+        "", 1, calcPrecio, "Unidad", 1, "",
+        descVal, "10", "15", "1", "0.1", "", "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
-        7, "días", "", paisVal, valorVal, "", fechaVal, "",  // AB
+        7, "días", "", paisVal, valorVal, "", "", fechaVal, "",  // AF
       ];
 
       const ws = XLSX.utils.aoa_to_sheet([row]);
