@@ -359,7 +359,7 @@
       const ws = mlWorkbook.Sheets[mlSheetName];
 
       // Los datos empiezan en fila 5 (índice 4). Buscar la primera fila vacía desde ahí.
-      const HEADER_ROWS = 8; // filas 1-8 son headers/instrucciones, datos desde fila 9
+      const HEADER_ROWS = 7; // datos desde fila 8
       const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
 
       // Encontrar la primera fila vacía a partir de la fila 5
