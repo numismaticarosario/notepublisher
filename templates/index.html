@@ -225,7 +225,7 @@
       reader.onload = (e) => {
         try {
           mlWorkbook = XLSX.read(e.target.result, { type: "array" });
-          mlSheetName = "Billetes";
+          mlSheetName = mlWorkbook.SheetNames[0];
           pendingRows = [];
           rowCount = 0;
           mlPlaceholder.style.display = "none";
@@ -330,12 +330,11 @@
       let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
       calcPrecio = Math.ceil(calcPrecio / 100) * 100;
 
-      // Columna S (idx 18) tiene fórmula propia del template — no escribir (null)
       const row = [
         null, tituloVal, null, estado, null,
         "https://http2.mlstatic.com/D_NQ_NP_697806-MLA88371869892_072025-F.jpg",
         null, 1, calcPrecio, "Unidad", 1,
-        descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", null, "Mercado Envíos",
+        descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
         7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
       ];
@@ -358,15 +357,16 @@
       if (!mlWorkbook || pendingRows.length === 0) return;
 
       const ws = mlWorkbook.Sheets[mlSheetName];
+
+      // Encontrar la primera fila vacía después de los headers
       const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+      let nextRow = range.e.r + 1; // fila siguiente al final actual
 
-      // Fila 8 = índice 7. Cada fila nueva se escribe secuencialmente.
-      const START_ROW = 7;
-
+      // Agregar cada fila pendiente
       pendingRows.forEach((row, offset) => {
         row.forEach((val, colIdx) => {
-          if (val === null || val === undefined) return;
-          const cellRef = XLSX.utils.encode_cell({ r: START_ROW + offset, c: colIdx });
+          if (val === null || val === undefined) return; // celda vacía = no escribir
+          const cellRef = XLSX.utils.encode_cell({ r: nextRow + offset, c: colIdx });
           const cell = { v: val };
           if (typeof val === "number") cell.t = "n";
           else cell.t = "s";
@@ -377,7 +377,7 @@
       // Actualizar el rango de la hoja
       const newRange = {
         s: { r: 0, c: 0 },
-        e: { r: START_ROW + pendingRows.length - 1, c: Math.max(range.e.c, 33) }
+        e: { r: nextRow + pendingRows.length - 1, c: range.e.c }
       };
       ws["!ref"] = XLSX.utils.encode_range(newRange);
 
