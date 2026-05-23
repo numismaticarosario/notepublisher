@@ -326,7 +326,7 @@
       const valorVal = getVal("valor");
       const fechaVal = getVal("fecha");
 
-      const estado = consVal === "Unc" ? "Nuevo" : "Usado";
+      const estado = consVal === "Unc" ? "nuevo" : "usado";
       let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
       calcPrecio = Math.ceil(calcPrecio / 100) * 100;
 
