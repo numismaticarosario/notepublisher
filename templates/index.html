@@ -1,388 +1,69 @@
-<!doctype html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <title>NOTE PUBLISHER</title>
-  <style>
-    body { margin: 0; background: #f0f2f5; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
-    h1 { font-size: 2rem; color: #0d6efd; margin: 20px 0 40px 0; text-align: center; }
-    .layout { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; width: 100%; max-width: 1400px; margin-top: 20px; gap: 20px; }
-    .left-panel { display: flex; flex-direction: column; align-items: center; }
-    .dropzone { width: 100%; max-width: 320px; height: 100px; border: 2px dashed #cbd5e1; border-radius: 15px; background: #fff; display: flex; justify-content: center; align-items: center; color: #555; font-size: 1rem; text-align: center; margin-bottom: 20px; }
-    .dropzone.hover { border-color: #0d6efd; background: #e7f1ff; }
-    .dropzone.loaded { border-color: #198754; background: #eaffee; color: #198754; font-weight: bold; }
-    #placeholder { user-select: none; }
-    .action-btn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #0d6efd; color: white; cursor: not-allowed; margin-top: 10px; height: 42px; }
-    .data-panel { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
-    .field { display: flex; align-items: center; gap: 6px; }
-    .field label { font-weight: bold; min-width: 110px; text-align: right; }
-    .field input { flex: 1; height: 26px; border-radius: 6px; border: 1px solid #bbb; padding: 4px 8px; font-size: 0.85rem; background: #d3d3d3; color: #555; }
-    .field input:enabled { background: #fff; color: #000; }
-    .process-btn-row { display: flex; align-items: center; gap: 6px; margin-top: 20px; }
-    .process-btn-row label { min-width: 110px; }
-    .process-btn-row button { flex: 1; height: 42px; border-radius: 10px; border: none; background: #0d6efd; color: white; font-size: 0.95rem; cursor: not-allowed; }
-    .right-panel { grid-column: 3 / span 2; display: flex; flex-direction: column; gap: 12px; align-items: flex-start; } 
-    .extended-field { display: flex; align-items: flex-start; gap: 6px; width: 100%; }
-    .extended-field label { font-weight: bold; min-width: 110px; text-align: right; padding-top: 6px; }
-    .extended-field input, .extended-field textarea { flex: 1; border-radius: 6px; border: 1px solid #bbb; padding: 6px 8px; font-size: 0.85rem; background: #d3d3d3; color: #555; }
-    .extended-field input:enabled, .extended-field textarea:enabled { background: #fff; color: #000; }
-    #titulo { height: 26px; }
-    #descripcion { height: 280px; resize: none; overflow: hidden; }
+break;
+}
+}
+}
+});
 
-    .excel-btn-container { 
-      display: flex; 
-      justify-content: center; 
-      width: calc(100% - 110px);
-      margin-top: 10px; 
-      margin-left: 110px; 
-    }
-    #excelBtn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #0d6efd; color: white; cursor: not-allowed; height: 42px; }
+// ── dropzone template ML ────────────────────────────────────────────────
+["dragenter","dragover"].forEach(e => dropzoneML.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzoneML.classList.add("hover"); }));
+["dragleave","drop"].forEach(e => dropzoneML.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzoneML.classList.remove("hover"); }));
 
-    /* --- ML TEMPLATE SECTION --- */
-    .ml-section { display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 28px; }
-    #dropzoneML { width: 100%; max-width: 320px; height: 100px; border: 2px dashed #cbd5e1; border-radius: 15px; background: #fff; display: flex; justify-content: center; align-items: center; color: #555; font-size: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
-    #dropzoneML.hover { border-color: #0d6efd; background: #e7f1ff; }
-    #dropzoneML.loaded { border-color: #198754; background: #eaffee; color: #198754; font-weight: bold; }
-    #downloadBtn {
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      border-radius: 10px;
-      border: none;
-      background: #0d6efd;
-      color: white;
-      cursor: not-allowed;
-      height: 42px;
-      width: 100%;
-      max-width: 320px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-    #downloadBtn .badge {
-      background: white;
-      color: #0d6efd;
-      font-weight: bold;
-      font-size: 0.8rem;
-      border-radius: 20px;
-      padding: 2px 9px;
-      min-width: 24px;
-      text-align: center;
-    }
-  </style>
-</head>
-<body>
-  <h1>NOTE PUBLISHER - NR</h1>
-  <div class="layout">
-    <div class="left-panel">
-      <!-- DROPZONE CAPTURAS (sin cambios) -->
-      <div id="dropzone" class="dropzone">
-        <span id="placeholder">Arrastrar Captura Aquí</span>
-        <span id="filename" style="display:none; font-weight:bold;"></span>
-      </div>
-      <button id="getDataBtn" class="action-btn" disabled>Obtener Datos</button>
+dropzoneML.addEventListener("drop", e => {
+const file = e.dataTransfer.files?.[0];
+if(file && file.name.match(/\.xlsx$/i)){
+loadMLTemplate(file);
+} else {
+alert("Por favor arrastrá un archivo .xlsx");
+}
+});
 
-      <!-- SECCIÓN ML TEMPLATE -->
-      <div class="ml-section">
-        <div id="dropzoneML">
-          <span id="mlPlaceholder">Arrastrar Template ML Aquí</span>
-          <span id="mlFilename" style="display:none; font-weight:bold;"></span>
-        </div>
-        <button id="downloadBtn" disabled>
-          Descargar Excel
-          <span class="badge" id="rowCounter">0</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="data-panel">
-      <div class="field"><label>Pais:</label><input type="text" disabled></div>
-      <div class="field"><label>Valor:</label><input type="text" disabled></div>
-      <div class="field"><label>P / Bot. / N:</label><input type="text" disabled></div>
-      <div class="field"><label>Material:</label><input type="text" disabled></div>
-      <div class="field"><label>Tamaño:</label><input type="text" disabled></div>
-      <div class="field"><label>Fecha:</label><input type="text" disabled></div>
-      <div class="field"><label>Conservacion:</label><input type="text" disabled></div>
-      <div class="field"><label>Fisher:</label><input type="text" disabled></div>
-      <div class="field"><label>Diseño:</label><input type="text" disabled></div>
-      <div class="field"><label>Precio:</label><input type="text" disabled></div>
-      <div class="process-btn-row">
-        <label></label>
-        <button id="processBtn" disabled>Procesar Info</button>
-      </div>
-    </div>
-
-    <div class="right-panel">
-      <div class="extended-field"><label>Título:</label><input type="text" id="titulo" disabled></div>
-      <div class="extended-field"><label>Descripción:</label><textarea id="descripcion" disabled></textarea></div>
-
-      <div class="excel-btn-container">
-        <button id="excelBtn" disabled>Agregar Fila</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <script>
-    const placeholder = document.getElementById("placeholder");
-    const filenameSpan = document.getElementById("filename");
-    const getDataBtn = document.getElementById("getDataBtn");
-    const processBtn = document.getElementById("processBtn");
-    const dropzone = document.getElementById("dropzone");
-    const titulo = document.getElementById("titulo");
-    const descripcion = document.getElementById("descripcion");
-    const excelBtn = document.getElementById("excelBtn");
-
-    const dropzoneML = document.getElementById("dropzoneML");
-    const mlPlaceholder = document.getElementById("mlPlaceholder");
-    const mlFilename = document.getElementById("mlFilename");
-    const downloadBtn = document.getElementById("downloadBtn");
-    const rowCounter = document.getElementById("rowCounter");
-
-    let currentFile = null;
-    let mlWorkbook = null;       // workbook del template ML cargado
-    let mlSheetName = null;      // nombre de la primera hoja
-    let pendingRows = [];        // filas acumuladas en memoria
-    let rowCount = 0;
-
-    // ── helpers enable/disable ──────────────────────────────────────────────
-    function checkEnableProcessBtn() {
-      const inputs = document.querySelectorAll(".data-panel input");
-      const allEnabled = Array.from(inputs).every(input => !input.disabled);
-      processBtn.disabled = !allEnabled;
-      processBtn.style.cursor = allEnabled ? "pointer" : "not-allowed";
-    }
-
-    function checkEnableExcelBtn() {
-      if (!titulo.disabled && titulo.value.trim() !== "" &&
-          !descripcion.disabled && descripcion.value.trim() !== "") {
-        excelBtn.disabled = false;
-        excelBtn.style.cursor = "pointer";
-      }
-    }
-
-    function updateDownloadBtn() {
-      rowCounter.textContent = rowCount;
-      if (mlWorkbook && rowCount > 0) {
-        downloadBtn.disabled = false;
-        downloadBtn.style.cursor = "pointer";
-      } else {
-        downloadBtn.disabled = true;
-        downloadBtn.style.cursor = "not-allowed";
-      }
-    }
-
-    // ── dropzone capturas (sin cambios) ─────────────────────────────────────
-    ["dragenter","dragover"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.add("hover"); }));
-    ["dragleave","drop"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.remove("hover"); }));
-
-    dropzone.addEventListener("drop", e => {
-      const file = e.dataTransfer.files?.[0];
-      if(file){
-        currentFile = file;
-        placeholder.style.display = "none";
-        filenameSpan.textContent = file.name;
-        filenameSpan.style.display = "inline";
-        getDataBtn.disabled = false;
-        getDataBtn.style.cursor = "pointer";
-      }
-    });
-
-    document.addEventListener("paste", e => {
-      const items = e.clipboardData?.items || [];
-      for(const item of items){
-        if(item.type.startsWith("image/")){
-          const blob = item.getAsFile();
-          if(blob){
-            currentFile = new File([blob], "captura.png", { type: blob.type });
-            placeholder.style.display = "none";
-            filenameSpan.textContent = "captura.png";
-            filenameSpan.style.display = "inline";
-            getDataBtn.disabled = false;
-            getDataBtn.style.cursor = "pointer";
-            break;
-          }
-        }
-      }
-    });
-
-    // ── dropzone template ML ────────────────────────────────────────────────
-    ["dragenter","dragover"].forEach(e => dropzoneML.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzoneML.classList.add("hover"); }));
-    ["dragleave","drop"].forEach(e => dropzoneML.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzoneML.classList.remove("hover"); }));
-
-    dropzoneML.addEventListener("drop", e => {
-      const file = e.dataTransfer.files?.[0];
-      if(file && file.name.match(/\.xlsx$/i)){
-        loadMLTemplate(file);
-      } else {
-        alert("Por favor arrastrá un archivo .xlsx");
-      }
-    });
-
-    function loadMLTemplate(file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          mlWorkbook = XLSX.read(e.target.result, { type: "array" });
+function loadMLTemplate(file) {
+const reader = new FileReader();
+reader.onload = (e) => {
+try {
+mlWorkbook = XLSX.read(e.target.result, { type: "array" });
           mlSheetName = mlWorkbook.SheetNames[0];
-          pendingRows = [];
-          rowCount = 0;
-          mlPlaceholder.style.display = "none";
-          mlFilename.textContent = "✓ " + file.name;
-          mlFilename.style.display = "inline";
-          dropzoneML.classList.add("loaded");
-          updateDownloadBtn();
-        } catch(err) {
-          alert("No se pudo leer el archivo. Asegurate que sea un .xlsx válido.");
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
+          mlSheetName = "Billetes";
+pendingRows = [];
+rowCount = 0;
+mlPlaceholder.style.display = "none";
+@@ -358,14 +358,22 @@
 
-    // ── obtener datos ───────────────────────────────────────────────────────
-    getDataBtn.addEventListener("click", async () => {
-      if(!currentFile) return;
-      const formData = new FormData();
-      formData.append("image", currentFile);
-      try {
-        const res = await fetch("/extract", { method: "POST", body: formData });
-        const data = await res.json();
-        const inputs = document.querySelectorAll(".data-panel input");
-        const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
-        inputs.forEach((input, i) => {
-          input.disabled = false;
-          if(data[keys[i]]) input.value = data[keys[i]];
-        });
-        checkEnableProcessBtn();
-      } catch(err) {
-        console.error("Error al obtener datos:", err);
-      }
-    });
-
-    // ── procesar info ───────────────────────────────────────────────────────
-    processBtn.addEventListener("click", () => {
-      const inputs = document.querySelectorAll(".data-panel input");
-      const getVal = (name) => {
-        const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
-        return inputs[keys.indexOf(name)].value.trim();
-      };
-
-      let tituloText = `${getVal("pais")} - ${getVal("valor")} - Año ${getVal("fecha")} - ${getVal("referencia")}`;
-      if(getVal("fisher")) tituloText += ` - ${getVal("fisher")}`;
-
-      titulo.disabled = false;
-      titulo.value = tituloText;
-
-      const consMap = {
-        "P": "pobre",
-        "F -": "bueno -",
-        "F": "bueno",
-        "F +": "bueno +",
-        "VF -": "muy bueno -",
-        "VF": "muy bueno",
-        "VF +": "muy bueno +",
-        "XF -": "excelente -",
-        "XF": "excelente",
-        "XF +": "excelente +",
-        "Unc -": "nuevo sin uso -",
-        "Unc": "nuevo sin uso",
-        "Proof": ""
-      };
-
-      let consVal = getVal("conservacion");
-      let consText = consMap[consVal] ? ` (${consMap[consVal]})` : "";
-
-      let desc = `Billete impreso en ${getVal("metal")} de ${getVal("pais").toUpperCase()} de ${getVal("valor").toUpperCase()} del año ${getVal("fecha")}. Conservación: ${consVal}${consText}. Catalogación: ${getVal("referencia")}. Tamaño: ${getVal("diametro")}. Diseño: ${getVal("diseno")}.\n\n`;
-
-      const priceMap = { "0":"O","1":"M","2":"U","3":"R","4":"C","5":"I","6":"E","7":"L","8":"A","9":"G", ",":"-", ".":"-" };
-      let precio = getVal("precio").split("").map(ch => priceMap[ch] || ch).join("");
-      desc += `CODIGO: ${precio}`;
-
-      descripcion.disabled = false;
-      descripcion.value = desc;
-
-      checkEnableExcelBtn();
-    });
-
-    // ── agregar fila ────────────────────────────────────────────────────────
-    excelBtn.addEventListener("click", () => {
-      if (!mlWorkbook) {
-        alert("Primero arrastrá el template de ML al dropzone correspondiente.");
-        return;
-      }
-
-      const inputs = document.querySelectorAll(".data-panel input");
-      const getVal = (name) => {
-        const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
-        return inputs[keys.indexOf(name)].value.trim();
-      };
-
-      const tituloVal = titulo.value.trim();
-      const descVal = descripcion.value.trim();
-      const consVal = getVal("conservacion");
-      const precioVal = parseFloat(getVal("precio")) || 0;
-      const paisVal = getVal("pais");
-      const valorVal = getVal("valor");
-      const fechaVal = getVal("fecha");
-
-      const estado = consVal === "Unc" ? "Nuevo" : "Usado";
-      let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
-      calcPrecio = Math.ceil(calcPrecio / 100) * 100;
-
-      const row = [
-        null, tituloVal, null, estado, null,
-        "https://http2.mlstatic.com/D_NQ_NP_697806-MLA88371869892_072025-F.jpg",
-        null, 1, calcPrecio, "Unidad", 1,
-        descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
-        "A cargo del comprador", "Acepto", "Garantía del vendedor",
-        7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
-      ];
-
-      pendingRows.push(row);
-      rowCount++;
-      updateDownloadBtn();
-
-      // Feedback visual breve
-      excelBtn.textContent = "✓ Fila agregada";
-      excelBtn.style.background = "#198754";
-      setTimeout(() => {
-        excelBtn.textContent = "Agregar Fila";
-        excelBtn.style.background = "#0d6efd";
-      }, 1500);
-    });
-
-    // ── descargar excel ─────────────────────────────────────────────────────
-    downloadBtn.addEventListener("click", () => {
-      if (!mlWorkbook || pendingRows.length === 0) return;
-
-      const ws = mlWorkbook.Sheets[mlSheetName];
+const ws = mlWorkbook.Sheets[mlSheetName];
 
       // Encontrar la primera fila vacía después de los headers
-      const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
+      // Los datos empiezan en fila 5 (índice 4). Buscar la primera fila vacía desde ahí.
+      const HEADER_ROWS = 8; // filas 1-8 son headers/instrucciones, datos desde fila 9
+const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
       let nextRow = range.e.r + 1; // fila siguiente al final actual
 
-      // Agregar cada fila pendiente
-      pendingRows.forEach((row, offset) => {
-        row.forEach((val, colIdx) => {
+      // Encontrar la primera fila vacía a partir de la fila 5
+      let nextRow = HEADER_ROWS; // índice 4 = fila 5 en Excel
+      for (let r = HEADER_ROWS; r <= range.e.r; r++) {
+        const cellB = ws[XLSX.utils.encode_cell({ r, c: 1 })]; // columna B = título
+        if (!cellB || !cellB.v) { nextRow = r; break; }
+        nextRow = r + 1;
+      }
+
+// Agregar cada fila pendiente
+pendingRows.forEach((row, offset) => {
+row.forEach((val, colIdx) => {
           if (val === null || val === undefined) return; // celda vacía = no escribir
-          const cellRef = XLSX.utils.encode_cell({ r: nextRow + offset, c: colIdx });
-          const cell = { v: val };
-          if (typeof val === "number") cell.t = "n";
-          else cell.t = "s";
-          ws[cellRef] = cell;
-        });
-      });
-
-      // Actualizar el rango de la hoja
-      const newRange = {
-        s: { r: 0, c: 0 },
+          if (val === null || val === undefined) return;
+const cellRef = XLSX.utils.encode_cell({ r: nextRow + offset, c: colIdx });
+const cell = { v: val };
+if (typeof val === "number") cell.t = "n";
+@@ -377,12 +385,12 @@
+// Actualizar el rango de la hoja
+const newRange = {
+s: { r: 0, c: 0 },
         e: { r: nextRow + pendingRows.length - 1, c: range.e.c }
-      };
-      ws["!ref"] = XLSX.utils.encode_range(newRange);
+        e: { r: nextRow + pendingRows.length - 1, c: Math.max(range.e.c, 33) }
+};
+ws["!ref"] = XLSX.utils.encode_range(newRange);
 
-      XLSX.writeFile(mlWorkbook, "template_ML_completo.xlsx");
-    });
-  </script>
+XLSX.writeFile(mlWorkbook, "template_ML_completo.xlsx");
+});
+</script>
 </body>
 </html>
