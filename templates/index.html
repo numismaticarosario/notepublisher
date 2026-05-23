@@ -358,24 +358,15 @@
       if (!mlWorkbook || pendingRows.length === 0) return;
 
       const ws = mlWorkbook.Sheets[mlSheetName];
-
-      // Los datos empiezan en fila 5 (índice 4). Buscar la primera fila vacía desde ahí.
-      const HEADER_ROWS = 7; // filas 1-7 son headers/instrucciones, datos desde fila 8
       const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
 
-      // Encontrar la primera fila vacía a partir de la fila 5
-      let nextRow = HEADER_ROWS; // índice 4 = fila 5 en Excel
-      for (let r = HEADER_ROWS; r <= range.e.r; r++) {
-        const cellB = ws[XLSX.utils.encode_cell({ r, c: 1 })]; // columna B = título
-        if (!cellB || !cellB.v) { nextRow = r; break; }
-        nextRow = r + 1;
-      }
+      // Fila 8 = índice 7. Cada fila nueva se escribe secuencialmente.
+      const START_ROW = 7;
 
-      // Agregar cada fila pendiente
       pendingRows.forEach((row, offset) => {
         row.forEach((val, colIdx) => {
           if (val === null || val === undefined) return;
-          const cellRef = XLSX.utils.encode_cell({ r: nextRow + offset, c: colIdx });
+          const cellRef = XLSX.utils.encode_cell({ r: START_ROW + offset, c: colIdx });
           const cell = { v: val };
           if (typeof val === "number") cell.t = "n";
           else cell.t = "s";
@@ -386,7 +377,7 @@
       // Actualizar el rango de la hoja
       const newRange = {
         s: { r: 0, c: 0 },
-        e: { r: nextRow + pendingRows.length - 1, c: Math.max(range.e.c, 33) }
+        e: { r: START_ROW + pendingRows.length - 1, c: Math.max(range.e.c, 33) }
       };
       ws["!ref"] = XLSX.utils.encode_range(newRange);
 
