@@ -76,7 +76,7 @@
   <h1>NOTE PUBLISHER - NR</h1>
   <div class="layout">
     <div class="left-panel">
-      <!-- DROPZONE CAPTURAS (sin cambios) -->
+      <!-- DROPZONE CAPTURAS -->
       <div id="dropzone" class="dropzone">
         <span id="placeholder">Arrastrar Captura Aquí</span>
         <span id="filename" style="display:none; font-weight:bold;"></span>
@@ -141,9 +141,9 @@
     const rowCounter = document.getElementById("rowCounter");
 
     let currentFile = null;
-    let mlWorkbook = null;       // workbook del template ML cargado
-    let mlSheetName = null;      // nombre de la primera hoja
-    let pendingRows = [];        // filas acumuladas en memoria
+    let mlWorkbook = null;
+    let mlSheetName = null;
+    let pendingRows = [];
     let rowCount = 0;
 
     // ── helpers enable/disable ──────────────────────────────────────────────
@@ -173,7 +173,7 @@
       }
     }
 
-    // ── dropzone capturas (sin cambios) ─────────────────────────────────────
+    // ── dropzone capturas ───────────────────────────────────────────────────
     ["dragenter","dragover"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.add("hover"); }));
     ["dragleave","drop"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.remove("hover"); }));
 
@@ -330,20 +330,21 @@
       let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
       calcPrecio = Math.ceil(calcPrecio / 100) * 100;
 
+      // null = celda vacía (no se escribe nada en el xlsx)
       const row = [
-        "", tituloVal, "", estado, "",
-        "https://http2.mlstatic.com/D_NQ_NP_927926-MLA110987278008_052026-F.jpg",
-        "", 1, calcPrecio, "Unidad", 1,
-        descVal, 10, 15, 1, 0.1, "", "No agregar cuotas", "Sin Costo", "Mercado Envíos",
+        null, tituloVal, null, estado, null,
+        "https://http2.mlstatic.com/D_NQ_NP_927926-MLA110987278008_052026-F.jpg",  // col F (índice 5) → forzado texto
+        null, 1, calcPrecio, "Unidad", 1,                                            // col H (índice 7) stock → forzado entero
+        descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
-        7, "días", "No ofrezco", paisVal, parseFloat(valorVal), "", Number(fechaVal.replace(",", ".")), "",
+        7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
+        // col X (índice 23) días garantía → forzado entero (ver escritura abajo)
       ];
 
       pendingRows.push(row);
       rowCount++;
       updateDownloadBtn();
 
-      // Feedback visual breve
       excelBtn.textContent = "✓ Fila agregada";
       excelBtn.style.background = "#198754";
       setTimeout(() => {
@@ -358,31 +359,45 @@
 
       const ws = mlWorkbook.Sheets[mlSheetName];
 
-      // Los datos empiezan en fila 5 (índice 4). Buscar la primera fila vacía desde ahí.
-      const HEADER_ROWS = 8; // filas 1-8 son headers/instrucciones, datos desde fila 9
+      const HEADER_ROWS = 8;
       const range = XLSX.utils.decode_range(ws["!ref"] || "A1");
 
-      // Encontrar la primera fila vacía a partir de la fila 5
-      let nextRow = HEADER_ROWS; // índice 4 = fila 5 en Excel
+      let nextRow = HEADER_ROWS;
       for (let r = HEADER_ROWS; r <= range.e.r; r++) {
-        const cellB = ws[XLSX.utils.encode_cell({ r, c: 1 })]; // columna B = título
+        const cellB = ws[XLSX.utils.encode_cell({ r, c: 1 })];
         if (!cellB || !cellB.v) { nextRow = r; break; }
         nextRow = r + 1;
       }
 
-      // Agregar cada fila pendiente
+      // Índices de columna con formato forzado:
+      // 5  = col F → foto (texto "@")
+      // 7  = col H → stock (entero "0")
+      // 23 = col X → días de garantía (entero "0")
+      const formatOverrides = {
+        5:  { t: "s", z: "@" },   // foto: texto plano
+        7:  { t: "n", z: "0" },   // stock: entero
+        23: { t: "n", z: "0" },   // días garantía: entero
+      };
+
       pendingRows.forEach((row, offset) => {
         row.forEach((val, colIdx) => {
           if (val === null || val === undefined) return;
           const cellRef = XLSX.utils.encode_cell({ r: nextRow + offset, c: colIdx });
           const cell = { v: val };
-          if (typeof val === "number") cell.t = "n";
-          else cell.t = "s";
+
+          if (formatOverrides[colIdx]) {
+            cell.t = formatOverrides[colIdx].t;
+            cell.z = formatOverrides[colIdx].z;
+          } else if (typeof val === "number") {
+            cell.t = "n";
+          } else {
+            cell.t = "s";
+          }
+
           ws[cellRef] = cell;
         });
       });
 
-      // Actualizar el rango de la hoja
       const newRange = {
         s: { r: 0, c: 0 },
         e: { r: nextRow + pendingRows.length - 1, c: Math.max(range.e.c, 33) }
