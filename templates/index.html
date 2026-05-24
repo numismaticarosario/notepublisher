@@ -332,9 +332,9 @@
 
       // null = celda vacía (no se escribe nada en el xlsx)
       const row = [
-        null, tituloVal, null, estado, null,
+        null, tituloVal, null, estado, "",
         "https://http2.mlstatic.com/D_NQ_NP_927926-MLA110987278008_052026-F.jpg",  // col F (índice 5) → forzado texto
-        null, 1, calcPrecio, "Unidad", 1,                                            // col H (índice 7) stock → forzado entero
+        "", 1, calcPrecio, "Unidad", 1,                                            // col H (índice 7) stock → forzado entero
         descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
         7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
