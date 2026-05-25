@@ -13,6 +13,9 @@
     .dropzone.loaded { border-color: #198754; background: #eaffee; color: #198754; font-weight: bold; }
     #placeholder { user-select: none; }
     .action-btn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #0d6efd; color: white; cursor: not-allowed; margin-top: 5px; height: 42px; }
+    .clear-btn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #6c757d; color: white; cursor: pointer; margin-top: 5px; height: 42px; }
+    .clear-btn:hover { background: #5a6268; }
+    .btn-row { display: flex; align-items: center; gap: 10px; }
     .data-panel { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
     .field { display: flex; align-items: center; gap: 6px; }
     .field label { font-weight: bold; min-width: 110px; text-align: right; }
@@ -113,7 +116,10 @@
         <span id="placeholder">Arrastrar Captura Aquí</span>
         <span id="filename" style="display:none; font-weight:bold;"></span>
       </div>
-      <button id="getDataBtn" class="action-btn" disabled>Obtener Datos</button>
+      <div class="btn-row">
+        <button id="clearBtn" class="clear-btn">Clear</button>
+        <button id="getDataBtn" class="action-btn" disabled>Obtener Datos</button>
+      </div>
 
       <!-- SECCIÓN ML TEMPLATE -->
       <div class="ml-section">
@@ -167,6 +173,7 @@
     const placeholder = document.getElementById("placeholder");
     const filenameSpan = document.getElementById("filename");
     const getDataBtn = document.getElementById("getDataBtn");
+    const clearBtn = document.getElementById("clearBtn");
     const processBtn = document.getElementById("processBtn");
     const dropzone = document.getElementById("dropzone");
     const titulo = document.getElementById("titulo");
@@ -217,6 +224,41 @@
         downloadBtn.style.cursor = "not-allowed";
       }
     }
+
+    // ── clear ───────────────────────────────────────────────────────────────
+    clearBtn.addEventListener("click", () => {
+      // Resetear dropzone de capturas
+      currentFile = null;
+      placeholder.style.display = "inline";
+      filenameSpan.style.display = "none";
+      filenameSpan.textContent = "";
+      dropzone.classList.remove("loaded", "hover");
+
+      // Deshabilitar botón Obtener Datos
+      getDataBtn.disabled = true;
+      getDataBtn.style.cursor = "not-allowed";
+
+      // Resetear inputs del data-panel
+      const inputs = document.querySelectorAll(".data-panel input");
+      inputs.forEach(input => {
+        input.disabled = true;
+        input.value = "";
+      });
+
+      // Resetear botón Procesar Info
+      processBtn.disabled = true;
+      processBtn.style.cursor = "not-allowed";
+
+      // Resetear Título y Descripción
+      titulo.disabled = true;
+      titulo.value = "";
+      descripcion.disabled = true;
+      descripcion.value = "";
+
+      // Resetear botón Agregar Fila
+      excelBtn.disabled = true;
+      excelBtn.style.cursor = "not-allowed";
+    });
 
     // ── dropzone capturas ───────────────────────────────────────────────────
     ["dragenter","dragover"].forEach(e => dropzone.addEventListener(e, ev => { ev.preventDefault(); ev.stopPropagation(); dropzone.classList.add("hover"); }));
