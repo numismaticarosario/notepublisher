@@ -12,7 +12,7 @@
     .dropzone.hover { border-color: #0d6efd; background: #e7f1ff; }
     .dropzone.loaded { border-color: #198754; background: #eaffee; color: #198754; font-weight: bold; }
     #placeholder { user-select: none; }
-    .action-btn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #0d6efd; color: white; cursor: not-allowed; margin-top: 7px; height: 42px; }
+    .action-btn { padding: 10px 20px; font-size: 1rem; border-radius: 10px; border: none; background: #0d6efd; color: white; cursor: not-allowed; margin-top: 10px; height: 42px; }
     .data-panel { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
     .field { display: flex; align-items: center; gap: 6px; }
     .field label { font-weight: bold; min-width: 110px; text-align: right; }
@@ -44,7 +44,7 @@
     #dropzoneML.hover { border-color: #0d6efd; background: #e7f1ff; }
     #dropzoneML.loaded { border-color: #198754; background: #eaffee; color: #198754; font-weight: bold; }
     #downloadBtn {
-      margin-top: 28px;
+      margin-top: 10px;
       padding: 10px 20px;
       font-size: 1rem;
       border-radius: 10px;
@@ -70,38 +70,6 @@
       min-width: 24px;
       text-align: center;
     }
-
-    /* --- URL DROPZONE --- */
-    #dropzoneURL {
-      margin-top: 28px;
-      width: 100%;
-      max-width: 320px;
-      height: 100px;
-      border: 2px dashed #cbd5e1;
-      border-radius: 15px;
-      background: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #555;
-      font-size: 1rem;
-      text-align: center;
-      cursor: text;
-      transition: border-color 0.2s, background 0.2s;
-      position: relative;
-    }
-    #dropzoneURL.loaded {
-      border-color: #198754;
-      background: #eaffee;
-      color: #198754;
-      font-weight: bold;
-    }
-    #urlHiddenInput {
-      position: absolute;
-      opacity: 0;
-      width: 1px;
-      height: 1px;
-    }
   </style>
 </head>
 <body>
@@ -125,13 +93,6 @@
           Descargar Excel
           <span class="badge" id="rowCounter">0</span>
         </button>
-
-        <!-- DROPZONE URL -->
-        <div id="dropzoneURL" tabindex="0">
-          <input id="urlHiddenInput" type="text" />
-          <span id="urlPlaceholder">Arrastrar URL Vigente Aquí</span>
-          <span id="urlDisplay" style="display:none; font-weight:bold;">✓ Active Temporary URL</span>
-        </div>
       </div>
     </div>
 
@@ -179,17 +140,11 @@
     const downloadBtn = document.getElementById("downloadBtn");
     const rowCounter = document.getElementById("rowCounter");
 
-    const dropzoneURL = document.getElementById("dropzoneURL");
-    const urlPlaceholder = document.getElementById("urlPlaceholder");
-    const urlDisplay = document.getElementById("urlDisplay");
-    const urlHiddenInput = document.getElementById("urlHiddenInput");
-
     let currentFile = null;
     let mlWorkbook = null;
     let mlSheetName = null;
     let pendingRows = [];
     let rowCount = 0;
-    let activeURL = "";
 
     // ── helpers enable/disable ──────────────────────────────────────────────
     function checkEnableProcessBtn() {
@@ -227,28 +182,15 @@
       if(file){
         currentFile = file;
         placeholder.style.display = "none";
-        filenameSpan.textContent = file.name;
+        filenameSpan.textContent = "✓ Captura Agregada.png";
         filenameSpan.style.display = "inline";
+        dropzone.classList.add("loaded");
         getDataBtn.disabled = false;
         getDataBtn.style.cursor = "pointer";
       }
     });
 
     document.addEventListener("paste", e => {
-      // Si el foco está en el dropzoneURL, capturamos el texto pegado como URL
-      if (document.activeElement === dropzoneURL || document.activeElement === urlHiddenInput) {
-        const text = e.clipboardData?.getData("text") || "";
-        if (text.trim()) {
-          activeURL = text.trim();
-          urlPlaceholder.style.display = "none";
-          urlDisplay.style.display = "inline";
-          dropzoneURL.classList.add("loaded");
-        }
-        e.preventDefault();
-        return;
-      }
-
-      // Comportamiento original: pegar imagen para captura
       const items = e.clipboardData?.items || [];
       for(const item of items){
         if(item.type.startsWith("image/")){
@@ -256,19 +198,15 @@
           if(blob){
             currentFile = new File([blob], "captura.png", { type: blob.type });
             placeholder.style.display = "none";
-            filenameSpan.textContent = "captura.png";
+            filenameSpan.textContent = "✓ Captura Agregada.png";
             filenameSpan.style.display = "inline";
+            dropzone.classList.add("loaded");
             getDataBtn.disabled = false;
             getDataBtn.style.cursor = "pointer";
             break;
           }
         }
       }
-    });
-
-    // ── dropzone URL: foco al hacer click ──────────────────────────────────
-    dropzoneURL.addEventListener("click", () => {
-      dropzoneURL.focus();
     });
 
     // ── dropzone template ML ────────────────────────────────────────────────
@@ -394,13 +332,15 @@
       let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
       calcPrecio = Math.ceil(calcPrecio / 100) * 100;
 
+      // null = celda vacía (no se escribe nada en el xlsx)
       const row = [
         null, tituloVal, null, estado, "",
-        activeURL,  // col F (índice 5) → URL vigente del input
-        "", 1, calcPrecio, "Unidad", 1,
+        "https://http2.mlstatic.com/D_NQ_NP_655206-MLA111143947118_052026-F.jpg,https://http2.mlstatic.com/D_NQ_NP_757786-MLA111143976720_052026-F.jpg",  // col F (índice 5) → forzado texto
+        "", 1, calcPrecio, "Unidad", 1,                                            // col H (índice 7) stock → forzado entero
         descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
         7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
+        // col X (índice 23) días garantía → forzado entero (ver escritura abajo)
       ];
 
       pendingRows.push(row);
@@ -431,10 +371,14 @@
         nextRow = r + 1;
       }
 
+      // Índices de columna con formato forzado:
+      // 5  = col F → foto (texto "@")
+      // 7  = col H → stock (entero "0")
+      // 23 = col X → días de garantía (entero "0")
       const formatOverrides = {
-        5:  { t: "s", z: "@" },
-        7:  { t: "n", z: "0" },
-        23: { t: "n", z: "0" },
+        5:  { t: "s", z: "@" },   // foto: texto plano
+        7:  { t: "n", z: "0" },   // stock: entero
+        23: { t: "n", z: "0" },   // días garantía: entero
       };
 
       pendingRows.forEach((row, offset) => {
