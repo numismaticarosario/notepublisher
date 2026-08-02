@@ -152,6 +152,7 @@
       <div class="field"><label>Fisher:</label><input type="text" disabled></div>
       <div class="field"><label>Diseño:</label><input type="text" disabled></div>
       <div class="field"><label>Precio:</label><input type="text" disabled></div>
+      <div class="field"><label>Costo:</label><input type="text" id="costoInput" disabled></div>
       <div class="process-btn-row">
         <label></label>
         <button id="processBtn" disabled>Procesar Info</button>
@@ -200,7 +201,7 @@
 
     // ── helpers enable/disable ──────────────────────────────────────────────
     function checkEnableProcessBtn() {
-      const inputs = document.querySelectorAll(".data-panel input");
+      const inputs = document.querySelectorAll(".data-panel input:not(#costoInput)");
       const allEnabled = Array.from(inputs).every(input => !input.disabled);
       processBtn.disabled = !allEnabled;
       processBtn.style.cursor = allEnabled ? "pointer" : "not-allowed";
@@ -227,35 +228,33 @@
 
     // ── clear ───────────────────────────────────────────────────────────────
     clearBtn.addEventListener("click", () => {
-      // Resetear dropzone de capturas
       currentFile = null;
       placeholder.style.display = "inline";
       filenameSpan.style.display = "none";
       filenameSpan.textContent = "";
       dropzone.classList.remove("loaded", "hover");
 
-      // Deshabilitar botón Obtener Datos
       getDataBtn.disabled = true;
       getDataBtn.style.cursor = "not-allowed";
 
-      // Resetear inputs del data-panel
-      const inputs = document.querySelectorAll(".data-panel input");
+      const inputs = document.querySelectorAll(".data-panel input:not(#costoInput)");
       inputs.forEach(input => {
         input.disabled = true;
         input.value = "";
       });
 
-      // Resetear botón Procesar Info
+      const costoInput = document.getElementById("costoInput");
+      costoInput.value = "";
+      costoInput.disabled = true;
+
       processBtn.disabled = true;
       processBtn.style.cursor = "not-allowed";
 
-      // Resetear Título y Descripción
       titulo.disabled = true;
       titulo.value = "";
       descripcion.disabled = true;
       descripcion.value = "";
 
-      // Resetear botón Agregar Fila
       excelBtn.disabled = true;
       excelBtn.style.cursor = "not-allowed";
     });
@@ -278,7 +277,6 @@
     });
 
     document.addEventListener("paste", e => {
-      // Si el foco está en el dropzoneURL, capturamos el texto pegado como URL
       if (document.activeElement === dropzoneURL || document.activeElement === urlHiddenInput) {
         const text = e.clipboardData?.getData("text") || "";
         if (text.trim()) {
@@ -291,7 +289,6 @@
         return;
       }
 
-      // Comportamiento original: pegar imagen para captura
       const items = e.clipboardData?.items || [];
       for(const item of items){
         if(item.type.startsWith("image/")){
@@ -356,12 +353,13 @@
       try {
         const res = await fetch("/extract", { method: "POST", body: formData });
         const data = await res.json();
-        const inputs = document.querySelectorAll(".data-panel input");
+        const inputs = document.querySelectorAll(".data-panel input:not(#costoInput)");
         const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
         inputs.forEach((input, i) => {
           input.disabled = false;
           if(data[keys[i]]) input.value = data[keys[i]];
         });
+        document.getElementById("costoInput").disabled = false;
         checkEnableProcessBtn();
       } catch(err) {
         console.error("Error al obtener datos:", err);
@@ -370,7 +368,7 @@
 
     // ── procesar info ───────────────────────────────────────────────────────
     processBtn.addEventListener("click", () => {
-      const inputs = document.querySelectorAll(".data-panel input");
+      const inputs = document.querySelectorAll(".data-panel input:not(#costoInput)");
       const getVal = (name) => {
         const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
         return inputs[keys.indexOf(name)].value.trim();
@@ -420,7 +418,7 @@
         return;
       }
 
-      const inputs = document.querySelectorAll(".data-panel input");
+      const inputs = document.querySelectorAll(".data-panel input:not(#costoInput)");
       const getVal = (name) => {
         const keys = ["pais","valor","referencia","metal","diametro","fecha","conservacion","fisher","diseno","precio"];
         return inputs[keys.indexOf(name)].value.trim();
@@ -433,6 +431,19 @@
       const paisVal = getVal("pais");
       const valorVal = getVal("valor");
       const fechaVal = getVal("fecha");
+      const costoVal = parseFloat(document.getElementById("costoInput").value) || 0;
+
+      // ── SKU por costo ───────────────────────────────────────────────────
+      let skuVal = "";
+      if (costoVal > 0) {
+        if (costoVal >= precioVal) {
+          alert("El costo es mayor o igual al valor — no se puede generar el SKU.");
+          return;
+        }
+        const ganancia = Math.round((precioVal - costoVal) * 10) / 10;
+        const fmt = (n) => String(n).replace(".", "P");
+        skuVal = `X${fmt(costoVal)}Z${fmt(ganancia)}`;
+      }
 
       const estado = consVal === "Unc" ? "Nuevo" : "Usado";
       let calcPrecio = ((precioVal * 1500) / 0.84) + 1000;
@@ -441,7 +452,7 @@
       const row = [
         null, tituloVal, null, estado, "",
         activeURL,
-        "", 1, calcPrecio, "Unidad", 1,
+        skuVal, 1, calcPrecio, "Unidad", 1,
         descVal, 10, 15, 1, 0.1, null, "No agregar cuotas", "Sin Costo", "Mercado Envíos",
         "A cargo del comprador", "Acepto", "Garantía del vendedor",
         7, "días", "No ofrezco", paisVal, parseFloat(valorVal), null, Number(fechaVal.replace(",", ".")), null,
